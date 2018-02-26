@@ -7,7 +7,9 @@ RUN yum update -y && yum clean all && \
  yum install -y java-1.8.0-openjdk \
  wget \
  net-tools \
- which
+ python-setuptools \
+ which \
+ && easy_install supervisor
 
 ENV JAVA_HOME=/etc/alternatives/jre_1.8.0_openjdk
 
@@ -18,13 +20,14 @@ RUN wget --quiet http://apache.rediris.es/hadoop/common/hadoop-$HADOOP_VERSION/h
 RUN ln -s /opt/hadoop-$HADOOP_VERSION /opt/hadoop \
  && cp -R /opt/hadoop/etc/hadoop /etc 
 
-COPY files/conf/* /etc/hadoop/
+COPY files/conf/hadoop/* /etc/hadoop/
+COPY files/conf/supervisord/* /etc/supervisor/
 COPY files/env/hadoop.sh /etc/profile.d
 COPY files/entrypoint.sh /
-RUN mkdir -p /data/hadoop/dfs/name /data/hadoop/dfs/data /data/hadoop/mr-history/tmp /data/hadoop/mr-history/done \
+RUN mkdir -p /data/hadoop/dfs/name /data/hadoop/dfs/data /data/hadoop/mr-history/tmp /data/hadoop/mr-history/done /var/log/supervisord \
  && chmod +x /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["/bin/bash"]
 
 EXPOSE 8088 50010 50020 50070
-VOLUME /data/hadoop /opt/hadoop/logs
+VOLUME /data/hadoop /opt/hadoop/logs /var/log/supervisord
